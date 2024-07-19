@@ -32,6 +32,7 @@ contract ThePredicter {
     error ThePredicter__PredictionsAreClosed();
     error ThePredicter__UnauthorizedAccess();
 
+    // @audit info: Missing zero address checks
     constructor(
         address _scoreBoard,
         uint256 _entranceFee,
@@ -43,14 +44,19 @@ contract ThePredicter {
         predictionFee = _predictionFee;
     }
 
+    // @audit q: Can users enter again after they have been approved?
+    // @audit a: Yes, but they have to pay again and overwirte their previous registration
+    // @audit gas: Can be external since it is not called by the contract
     function register() public payable {
         if (msg.value != entranceFee) {
             revert ThePredicter__IncorrectEntranceFee();
         }
 
+        // 14400 == 4 hours
         if (block.timestamp > START_TIME - 14400) {
             revert ThePredicter__RegistrationIsOver();
         }
+
 
         if (playersStatus[msg.sender] == Status.Pending) {
             revert ThePredicter__CannotParticipateTwice();
@@ -61,6 +67,7 @@ contract ThePredicter {
 
     function cancelRegistration() public {
         if (playersStatus[msg.sender] == Status.Pending) {
+            // @audit high: Reentrancy possible, users can drain the contract balance
             (bool success, ) = msg.sender.call{value: entranceFee}("");
             require(success, "Failed to withdraw");
             playersStatus[msg.sender] = Status.Canceled;
@@ -69,6 +76,8 @@ contract ThePredicter {
         revert ThePredicter__NotEligibleForWithdraw();
     }
 
+    // @audit low: Users can enter the tournament multiple times when they re-register after
+    // being approved 
     function approvePlayer(address player) public {
         if (msg.sender != organizer) {
             revert ThePredicter__UnauthorizedAccess();
@@ -82,6 +91,8 @@ contract ThePredicter {
         }
     }
 
+    // @audit gas: Can be external since it is not called by the contract
+    // @audit medium: Not-approved players can make predictions, and thus avoid paying the entrance fee
     function makePrediction(
         uint256 matchNumber,
         ScoreBoard.Result prediction
@@ -89,7 +100,9 @@ contract ThePredicter {
         if (msg.value != predictionFee) {
             revert ThePredicter__IncorrectPredictionFee();
         }
-
+        // @audit medium: Math is wrong + magic numbers same as in ScoreBoard.sol
+        // Example: For the first match (number 0), users should be able to set predictions until 3600 seconds (1 hour) before the match starts
+        //  1723752000 + 0 * 68400 - 68400 = 1723752000 - 68400 = 1723683600 => Thu Aug 15 2024 01:00:00 GMT+0000 (19 hours before the match)
         if (block.timestamp > START_TIME + matchNumber * 68400 - 68400) {
             revert ThePredicter__PredictionsAreClosed();
         }
@@ -98,6 +111,8 @@ contract ThePredicter {
         scoreBoard.setPrediction(msg.sender, matchNumber, prediction);
     }
 
+    // @audit low: When called multiple times, more than the prediction fee can be withdrawn
+    // @audit gas: Can be external since it is not called by the contract
     function withdrawPredictionFees() public {
         if (msg.sender != organizer) {
             revert ThePredicter__NotEligibleForWithdraw();
@@ -108,6 +123,10 @@ contract ThePredicter {
         require(success, "Failed to withdraw");
     }
 
+    // @audit medium: End of the tournament is not checked, allowing players
+    // to withdraw their rewards before the organizer sets the final scores
+    // if they have placed a wrong prediction
+    // @audit gas: Can be external since it is not called by the contract
     function withdraw() public {
         if (!scoreBoard.isEligibleForReward(msg.sender)) {
             revert ThePredicter__NotEligibleForWithdraw();
@@ -116,24 +135,33 @@ contract ThePredicter {
         int8 score = scoreBoard.getPlayerScore(msg.sender);
 
         int8 maxScore = -1;
+        // @audit info: totalPositivePoints can be a uint256, since it can never be negative
         int256 totalPositivePoints = 0;
 
+        // @audit e: Loop through all players and get the maximum score and sum of all positive scores
         for (uint256 i = 0; i < players.length; ++i) {
             int8 cScore = scoreBoard.getPlayerScore(players[i]);
             if (cScore > maxScore) maxScore = cScore;
             if (cScore > 0) totalPositivePoints += cScore;
         }
 
+        // @audit e: Check if at least a single player has a positive score and the player has a negative score
         if (maxScore > 0 && score <= 0) {
             revert ThePredicter__NotEligibleForWithdraw();
         }
-
+        // @audit q: Does casting to unsiged numbers remove any negative values?
+        // @audit a: Should be safe here since negative scores 
         uint256 shares = uint8(score);
+        // @audit gas: Unnecessary cast, totalPositivePoints could also be a uint256 since it can never be negative
         uint256 totalShares = uint256(totalPositivePoints);
         uint256 reward = 0;
 
+        // @audit e: When no one has a positive score return the entrance fee else calculate the players share
+        // @audit low: Division by 0, if everyone has a negative or zero score totalShares will be 0
         reward = maxScore < 0
             ? entranceFee
+            // @audit q: Hmm I'm not sure about this calculation. If every player withdraws not more than the total entrance fee should be withdrawn.
+            // Let's state an invariant: The total amount of rewards withdrawn by all players should not exceed the total entrance fee paid by all players
             : (shares * players.length * entranceFee) / totalShares;
 
         if (reward > 0) {

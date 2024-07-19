@@ -36,17 +36,17 @@ Ivan and his 15 friends are always honest and well-intentioned, but nothing is k
 
 The protocol have the following roles: Organizer, User and Player. Everyone can be a User and after approval of the Organizer can become a Player. Ivan has the roles of both Organizer and Player. Ivan's 15 friends are Players. These 16 people are considered honest and trusted. They will not intentionally take advantage of vulnerabilities in the protocol. The Users and the other 14 people with the role of Players are unknown and the protocol must be protected from any malicious actions by them.
 
-The entrance fees paid at the beginning form the prize fund, which after the end of the tournament is distributed among all Players who paid at least one prediction fee and depending on theirs collected number of points.
+The **entrance fees paid** at the beginning form the prize fund, which after the end of the tournament is distributed among all Players who paid at least one prediction fee and depending on theirs collected number of points.
 
-When Player is making prediction, a prediction fee is required to be paid. Ivan also has to pay this fee. No second prediction fee is due if any Player desires to change an already paid prediction. The funds collected from this prediction fees are used to cover the costs of the hall and the Organizer must be able to withdraw those funds at any time.
+When Player is making prediction, a **prediction fee** is required to be paid. Ivan also has to pay this fee. No second prediction fee is due if any Player desires to change an already paid prediction. The funds collected from this prediction fees are used to cover the costs of the hall and the **Organizer must be able to withdraw** those funds at any time.
 
 The entrance fee and prediction fee are parameters of the protocol that are set when it is deployed on the Arbitrum blockchain.
 
-The start of the tournament is set to Thu Aug 15 2024 20:00:00 UTC. A total of 9 matches will be played.
+The start of the tournament is set to **Thu Aug 15 2024 20:00:00 UTC**. A total of 9 matches will be played.
 
-Until 16:00:00 UTC on the day of the start of the tournament, Users can register by paying the entry fee. Anyone registered must be approved by the Organizer to become a Player. As the Organizer, Ivan will give priority approval to him and his other 15 friends. He will then approve some of the remaining registered Users until the maximum number is filled. Ivan and all 15 of his friends will register.
+Until **16:00:00 UTC** on the day of the start of the tournament, Users can register by paying the entry fee. Anyone registered must be approved by the Organizer to become a Player. As the Organizer, Ivan will give priority approval to him and his other 15 friends. He will then approve some of the remaining registered Users until the maximum number is filled. Ivan and all 15 of his friends will register.
 
-User who is not approved can withdraw the deposited entry fee at any time.
+**User who is not approved can withdraw the deposited entry fee at any time.**
 
 Two teams take part in the matches. Each match can end with:
 
@@ -54,17 +54,17 @@ Two teams take part in the matches. Each match can end with:
 - second team win (prediction Second);
 - or with a tie (prediction Draw).
 
-Every day from 20:00:00 UTC one match is played. Until 19:00:00 UTC on the day of the match, predictions can be made by any approved Player. Players pay prediction fee when making their first prediction for each match.
+**Every day from 20:00:00 UTC o**ne match is played. **Until 19:00:00 UTC** on the day of the match, predictions can be made by any approved Player. Players pay prediction fee when making their first prediction for each match.
 
 After the end of each match the Organizer will enter the match result.
 
-The prediction of the Player is correct if it is equal to the entered final result from the Organizer. The Player will:
+The p**rediction of the Player is correct if it is equal to the entered final result from the Organizer**. The Player will:
 
-- receive 2 points for a correct prediction for which a prediction fee has been paid;
-- lose 1 point for a wrong prediction for which a prediction fee has been paid;
+- receive **2 points** for a correct prediction for which a prediction fee has been paid;
+- lose **1 point** for a wrong prediction for which a prediction fee has been paid;
 - neighter receive nor lose any points if he has not given a prediction or the corresponding prediction fee has not been paid.
 
-After the Organizer has entered the result from the last match (the 9th match), Players can take their rewards from the prize pool. Players can receive an amount from the prize fund only if their total number of points is a positive number and if they had paid at least one prediction fee. The prize fund is distributed in proportion to the points collected by all Players with a positive number of points. If all Players have a negative number of points, they will receive back the value of the entry fee.
+After the Organizer has entered the **result from the last match (the 9th match), Players can take their rewards** from the prize pool. Players can receive an amount from the prize fund only if their total number of points is a positive number and if they had paid at least one prediction fee. The prize fund is distributed in proportion to the points collected by all Players with a positive number of points. If all Players have a negative number of points, they will receive back the value of the entry fee.
 
 The protocol consists the following contracts.
 
