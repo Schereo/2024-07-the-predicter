@@ -67,7 +67,7 @@ contract ThePredicter {
 
     function cancelRegistration() public {
         if (playersStatus[msg.sender] == Status.Pending) {
-            // @audit high: Reentrancy possible, users can drain the contract balance
+            // @audit-written high: Reentrancy possible, users can drain the contract balance
             (bool success, ) = msg.sender.call{value: entranceFee}("");
             require(success, "Failed to withdraw");
             playersStatus[msg.sender] = Status.Canceled;
