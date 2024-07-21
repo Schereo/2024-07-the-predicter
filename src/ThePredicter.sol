@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import "forge-std/console.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ScoreBoard} from "./ScoreBoard.sol";
 
@@ -57,7 +58,6 @@ contract ThePredicter {
             revert ThePredicter__RegistrationIsOver();
         }
 
-
         if (playersStatus[msg.sender] == Status.Pending) {
             revert ThePredicter__CannotParticipateTwice();
         }
@@ -77,7 +77,7 @@ contract ThePredicter {
     }
 
     // @audit low: Users can enter the tournament multiple times when they re-register after
-    // being approved 
+    // being approved
     function approvePlayer(address player) public {
         if (msg.sender != organizer) {
             revert ThePredicter__UnauthorizedAccess();
@@ -117,8 +117,14 @@ contract ThePredicter {
         if (msg.sender != organizer) {
             revert ThePredicter__NotEligibleForWithdraw();
         }
-
+        console.log("balance", address(this).balance);
+        console.log(
+            " - players.length * entranceFee",
+            players.length * entranceFee
+        );
+        //@audit high, added check to prevent underflow or internal accounting for the prediction fee
         uint256 fees = address(this).balance - players.length * entranceFee;
+        console.log("fees", fees);
         (bool success, ) = msg.sender.call{value: fees}("");
         require(success, "Failed to withdraw");
     }
@@ -150,7 +156,7 @@ contract ThePredicter {
             revert ThePredicter__NotEligibleForWithdraw();
         }
         // @audit q: Does casting to unsiged numbers remove any negative values?
-        // @audit a: Should be safe here since negative scores 
+        // @audit a: Should be safe here since negative scores
         uint256 shares = uint8(score);
         // @audit gas: Unnecessary cast, totalPositivePoints could also be a uint256 since it can never be negative
         uint256 totalShares = uint256(totalPositivePoints);
@@ -159,9 +165,7 @@ contract ThePredicter {
         // @audit e: When no one has a positive score return the entrance fee else calculate the players share
         // @audit low: Division by 0, if everyone has a negative or zero score totalShares will be 0
         reward = maxScore < 0
-            ? entranceFee
-            // @audit q: Hmm I'm not sure about this calculation. If every player withdraws not more than the total entrance fee should be withdrawn.
-            // Let's state an invariant: The total amount of rewards withdrawn by all players should not exceed the total entrance fee paid by all players
+            ? entranceFee // @audit q: Hmm I'm not sure about this calculation. If every player withdraws not more than the total entrance fee should be withdrawn. // Let's state an invariant: The total amount of rewards withdrawn by all players should not exceed the total entrance fee paid by all players
             : (shares * players.length * entranceFee) / totalShares;
 
         if (reward > 0) {
