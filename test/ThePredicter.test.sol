@@ -44,6 +44,15 @@ contract ThePredicterTest is Test {
         _;
     }
 
+    modifier playerRegisteredAndApproved() {
+        vm.deal(stranger, 1 ether);
+        vm.prank(stranger);
+        thePredicter.register{value: 0.04 ether}();
+        vm.prank(organizer);
+        thePredicter.approvePlayer(stranger);
+        _;
+    }
+
     function test_registration() public {
         vm.startPrank(stranger);
         vm.deal(stranger, 1 ether);
@@ -694,6 +703,46 @@ contract ThePredicterTest is Test {
 
         assertEq(address(thePredicter).balance, 0 ether);
     }
+
+    function testNotRegisteredPlayerCanMakePredictions() public {
+        address notRegisterdPlayer = makeAddr("notRegistedPlayer");
+        hoax(notRegisterdPlayer);
+        thePredicter.makePrediction{value: 0.0001 ether}(
+            0,
+            ScoreBoard.Result.First
+        );
+    }
+
+    function testPredictionsCloseEarlierThanExpected() public {
+
+        uint256 START_TIME = 1723752000; // Thu Aug 15 2024 20:00:00 GMT+0000
+
+        // According to the readme, predictions close one hour before the tournament starts (for the first match)
+        uint256 PREDICTIONS_CLOSE_TIME = START_TIME - 1 hours;
+
+        hoax(stranger);
+        thePredicter.register{value: 0.04 ether}();
+
+        vm.prank(organizer);
+        thePredicter.approvePlayer(stranger);
+
+        // Set time to one hour before tournament start time: Thu Aug 15 2024 19:00:00 GMT+0000
+        vm.warp(PREDICTIONS_CLOSE_TIME);
+
+        vm.prank(stranger);
+        // The call reverts despite the time being within the expected prediction time 
+        thePredicter.makePrediction{value: 0.0001 ether}(
+            0,
+            ScoreBoard.Result.First
+        );
+    }
+
+    function testAnyoneCanSetPredicionsForAPlayer() public playerRegisteredAndApproved {
+        address evilPlayer = makeAddr("evilPlayer");
+        vm.prank(evilPlayer);
+        scoreBoard.setPrediction(stranger, 0, ScoreBoard.Result.First);
+    }
+
 
     function testReenterCancelRegistration() public playersRegistered {
         ReentrancyPlayer attacker = new ReentrancyPlayer(thePredicter);

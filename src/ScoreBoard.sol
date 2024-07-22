@@ -16,9 +16,10 @@ contract ScoreBoard {
         Result[NUM_MATCHES] predictions;
         bool[NUM_MATCHES] isPaid;
         uint8 predictionsCount; // @audit q: shouldn't be this equal to predictions.length?
+                                // @audit a: No, predictions.length will always be equal to NUM_MATCHES
     }
 
-    // @audit gas: Owner var could be immutable
+    // @audit-invalid gas: Owner var could be immutable
     address owner;
     address thePredicter;
     Result[NUM_MATCHES] private results;
@@ -26,7 +27,7 @@ contract ScoreBoard {
 
     error ScoreBoard__UnauthorizedAccess();
 
-    // @audit info: Owner is not a declared role in the readme, how is it different from organizer?
+    // @audit-invalid info: Owner is not a declared role in the readme, how is it different from organizer?
     modifier onlyOwner() {
         if (msg.sender != owner) {
             revert ScoreBoard__UnauthorizedAccess();
@@ -46,11 +47,15 @@ contract ScoreBoard {
     }
 
     function setThePredicter(address _thePredicter) public onlyOwner {
-        // @audit info: Zero address check
+        // @audit-invalid info: Zero address check
         thePredicter = _thePredicter;
     }
 
     // @audit q: What happens if a previously set result is overwritten?
+    // @audit a: It does only matter for the last game after which players can withdraw their rewards, if changed during
+    // reward withdrawal, players will get different rewards for the same predictions
+    // => If the result is changed in a player's favor who has not withdrawn yet, the protocol might try to payout more funds
+    // than it has
     function setResult(uint256 matchNumber, Result result) public onlyOwner {
         results[matchNumber] = result;
     }
@@ -67,10 +72,10 @@ contract ScoreBoard {
         uint256 matchNumber,
         Result result
     ) public {
-        // @audit medium: Math is wrong + magic numbers
+        // @audit-written medium: Math is wrong + magic numbers
         // Example: For the first match (number 0), users should be able to set predictions until 3600 seconds (1 hour) before the match starts
         //  1723752000 + 0 * 68400 - 68400 = 1723752000 - 68400 = 1723683600 => Thu Aug 15 2024 01:00:00 GMT+0000 (19 hours before the match)
-        // @audit high: Anyone can set the predictions for a player, not only the player itself
+        // @audit-written high: Anyone can set the predictions for a player, not only the player itself
         if (block.timestamp <= START_TIME + matchNumber * 68400 - 68400)
             playersPredictions[player].predictions[matchNumber] = result;
         playersPredictions[player].predictionsCount = 0;
@@ -94,6 +99,7 @@ contract ScoreBoard {
             ) {
                 // @audit q: What happens if the player has not predicted every game?
                 // @audit a: Predictions and results are initializd with Result.Pending. So for every unplayed match, the player will get 2 points
+                // That is not an issue because the player's score will only get calculated when all games are played
                 score += playersPredictions[player].predictions[i] == results[i]
                     ? int8(2)
                     : -1;
@@ -101,8 +107,6 @@ contract ScoreBoard {
         }
     }
 
-    // @audit medium: According to the readme, players should only be eligible for rewards if they have a positive score. This is not checked here.
-    // Quote from the readme: "Players can receive an amount from the prize fund only if their total number of points is a positive number and if they had paid at least one prediction fee."
     function isEligibleForReward(address player) public view returns (bool) {
         return
             results[NUM_MATCHES - 1] != Result.Pending &&
