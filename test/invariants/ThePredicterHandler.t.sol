@@ -62,19 +62,20 @@ contract ThePredicterHandler is Test {
         vm.stopPrank();
 
         // WITHDRAW PREDICTION FEES
-        vm.startPrank(organizer);
-        // arithmetic underflow or overflow
-        if (address(thePredicter).balance > 0) {
-            console.log("b4", address(thePredicter).balance); //40300000000000000
-            thePredicter.withdrawPredictionFees();
-            console.log("after", address(thePredicter).balance); //40000000000000000
-        }
-        // thePredicter.withdrawPredictionFees();
-        vm.stopPrank();
+        // vm.startPrank(organizer);
+        // // arithmetic underflow or overflow
+        // if (address(thePredicter).balance > 0) {
+        //     console.log("b4", address(thePredicter).balance); //40300000000000000
+        //     thePredicter.withdrawPredictionFees();
+        //     console.log("after", address(thePredicter).balance); //40000000000000000
+        // }
+        // // thePredicter.withdrawPredictionFees();
+        // vm.stopPrank();
         //  assertEq(address(thePredicter).balance, 12e16);
 
         // WITHDRAW
         vm.startPrank(stranger);
+        // console.log("b4", address(thePredicter).balance);
         thePredicter.withdraw();
         vm.stopPrank();
         // 1 - 0.04 - (0.001 * 3) = 0.9597 - After Entrance & Prediction Fees

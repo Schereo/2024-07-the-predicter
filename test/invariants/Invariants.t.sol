@@ -36,6 +36,9 @@ contract Invariant is StdInvariant, Test {
     }
 
     function invariant_test() public {
-        assertEq(address(thePredicter).balance, 0 ether);
+        uint256 fees = thePredicter.predictionFee() *
+            thePredicter.getPlayersLength() *
+            3;
+        assertEq(address(thePredicter).balance, fees);
     }
 }

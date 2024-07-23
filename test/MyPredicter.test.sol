@@ -202,6 +202,10 @@ contract MyPredicterTest is Test {
         scoreBoard.setResult(8, ScoreBoard.Result.First);
         vm.stopPrank();
 
+        vm.startPrank(organizer);
+        thePredicter.withdrawPredictionFees();
+        vm.stopPrank();
+
         // WITHDRAW
         vm.startPrank(stranger);
         thePredicter.withdraw();
@@ -211,9 +215,6 @@ contract MyPredicterTest is Test {
         thePredicter.withdraw();
         vm.stopPrank();
 
-        vm.startPrank(organizer);
-        thePredicter.withdrawPredictionFees();
-        vm.stopPrank();
         //000600000000000000
 
         // WITHDRAW PREDICTION FEES

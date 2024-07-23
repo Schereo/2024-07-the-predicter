@@ -123,6 +123,14 @@ contract ThePredicter {
             players.length * entranceFee
         );
         //@audit high, added check to prevent underflow or internal accounting for the prediction fee
+        //          balance 600000000000000
+        //    - players.length * entranceFee 80000000000000000
+
+        //         //  balance 80600000000000000
+        //    - players.length * entranceFee 80000000000000000
+        //   fees 600000000000000
+        //   reward 40000000000000000
+        //   reward 40000000000000000
         uint256 fees = address(this).balance - players.length * entranceFee;
         console.log("fees", fees);
         (bool success, ) = msg.sender.call{value: fees}("");
@@ -168,10 +176,16 @@ contract ThePredicter {
             ? entranceFee // @audit q: Hmm I'm not sure about this calculation. If every player withdraws not more than the total entrance fee should be withdrawn. // Let's state an invariant: The total amount of rewards withdrawn by all players should not exceed the total entrance fee paid by all players
             : (shares * players.length * entranceFee) / totalShares;
 
+        console.log("reward", reward);
         if (reward > 0) {
             scoreBoard.clearPredictionsCount(msg.sender);
             (bool success, ) = msg.sender.call{value: reward}("");
             require(success, "Failed to withdraw");
         }
+    }
+
+    // getter for players length
+    function getPlayersLength() public view returns (uint256) {
+        return players.length;
     }
 }
