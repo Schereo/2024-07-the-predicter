@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import {console2} from "forge-std/console2.sol";
+
 contract ScoreBoard {
     uint256 private constant START_TIME = 1723752000; // Thu Aug 15 2024 20:00:00 GMT+0000
-    uint256 private constant NUM_MATCHES = 9;
+    uint256 public constant NUM_MATCHES = 9;
 
     enum Result {
         Pending,
@@ -16,14 +18,14 @@ contract ScoreBoard {
         Result[NUM_MATCHES] predictions;
         bool[NUM_MATCHES] isPaid;
         uint8 predictionsCount; // @audit q: shouldn't be this equal to predictions.length?
-                                // @audit a: No, predictions.length will always be equal to NUM_MATCHES
+        // @audit a: No, predictions.length will always be equal to NUM_MATCHES
     }
 
     // @audit-invalid gas: Owner var could be immutable
     address owner;
     address thePredicter;
-    Result[NUM_MATCHES] private results;
-    mapping(address players => PlayerPredictions) playersPredictions;
+    Result[NUM_MATCHES] public results;
+    mapping(address players => PlayerPredictions) public playersPredictions;
 
     error ScoreBoard__UnauthorizedAccess();
 
@@ -108,6 +110,10 @@ contract ScoreBoard {
     }
 
     function isEligibleForReward(address player) public view returns (bool) {
+        console2.log(
+            "Prediciton count: ",
+            playersPredictions[player].predictionsCount
+        );
         return
             results[NUM_MATCHES - 1] != Result.Pending &&
             playersPredictions[player].predictionsCount > 1;

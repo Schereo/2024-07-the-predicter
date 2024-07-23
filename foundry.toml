@@ -4,3 +4,8 @@ out = "out"
 libs = ["lib"]
 fff = false
 solc = "0.8.20"
+
+[invariant]
+runs = 256
+depth = 100
+fail_on_revert = true

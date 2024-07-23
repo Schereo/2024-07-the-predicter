@@ -32,7 +32,7 @@ _Created by [NightHawK](https://www.codehawks.com/profile/clvmfeh090004jbg1f2oa6
 
 Ivan and his 15 friends are big football fans and they decided to watch the matches of a football tournament together. Ivan has found a suitable hall with a capacity of 30 people in which they can watch the matches. To make it more interesting, and to pay the hall rent, Ivan decides to organize betting on the matches, as well as to invite up to 14 other completely random people to join in watching and betting.
 
-Ivan and his 15 friends are always honest and well-intentioned, but nothing is known about the other people and their intentions, so, Ivan decided to use the modern Web 3 technologies to develop the betting system. He is a novice Web 3 developer and therefore Ivan needs your help to audit the protocol he has developed.
+Ivan and his 15 friends are always honest and well-intentioned, but nothing is known about the other people and their intentions, so, Ivan decided to use the modern Web 3 technologies to develop the betting system.<> He is a novice Web 3 developer and therefore Ivan needs your help to audit the protocol he has developed.
 
 The protocol have the following roles: Organizer, User and Player. Everyone can be a User and after approval of the Organizer can become a Player. Ivan has the roles of both Organizer and Player. Ivan's 15 friends are Players. These 16 people are considered honest and trusted. They will not intentionally take advantage of vulnerabilities in the protocol. The Users and the other 14 people with the role of Players are unknown and the protocol must be protected from any malicious actions by them.
 
